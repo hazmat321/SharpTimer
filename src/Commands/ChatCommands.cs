@@ -64,23 +64,41 @@ namespace SharpTimer
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void ReplayCommand(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsAllowedPlayer(player) || enableReplays == false) return;
+        if (!IsAllowedPlayer(player) || enableReplays == false) return;
 
-            var playerSlot = player!.Slot;
-            var steamID = player.SteamID.ToString();
-            var playerName = player.PlayerName;
+        var playerSlot = player!.Slot;
+        var steamID = player.SteamID.ToString();
+        var playerName = player.PlayerName;
 
-            if (!playerTimers[playerSlot].IsTimerBlocked)
-            {
-                player.PrintToChat(msgPrefix + $" Please stop your timer using {primaryChatColor}!timer{ChatColors.White} first!");
-                return;
-            }
+        if (!playerTimers[playerSlot].IsTimerBlocked)
+        {
+        player.PrintToChat(msgPrefix + $" Please stop your timer using {primaryChatColor}!timer{ChatColors.White} first!");
+        return;
+        }
 
-            if (playerTimers[playerSlot].IsReplaying)
-            {
-                player.PrintToChat(msgPrefix + $" Please end your current replay first {primaryChatColor}!stopreplay");
-                return;
-            }
+        if (playerTimers[playerSlot].IsReplaying)
+        {
+        player.PrintToChat(msgPrefix + $" Please end your current replay first {primaryChatColor}!stopreplay");
+        return;
+        }
+
+    
+        StartTimerCommand(player, command);
+        }
+
+        [ConsoleCommand("css_timer", "starts the timer")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void StartTimerCommand(CCSPlayerController? player, CommandInfo command)
+        {
+        if (player == null) return;
+
+        var playerSlot = player!.Slot;
+        playerTimers[playerSlot].IsTimerRunning = true;
+        playerTimers[playerSlot].TimerTicks = 0;
+        playerTimers[playerSlot].IsBonusTimerRunning = false;
+        playerTimers[playerSlot].BonusTimerTicks = 0;
+        player.PrintToChat(msgPrefix + $" Timer Started!");
+        }
 
             player.PrintToChat(msgPrefix + $" Available replay cmds: {primaryChatColor}!replaypb{ChatColors.Default} | {primaryChatColor}!replaytop <1-10>{ChatColors.Default} | {primaryChatColor}!replaysr{ChatColors.Default}");
             player.PrintToChat(msgPrefix + $" Replaying the Server Map Record, type {primaryChatColor}!stopreplay {ChatColors.White}to exit the replay");
@@ -284,32 +302,49 @@ namespace SharpTimer
         [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
         public void StopReplayCommand(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsAllowedPlayer(player) || enableReplays == false) return;
+        if (!IsAllowedPlayer(player) || enableReplays == false) return;
 
-            var playerSlot = player!.Slot;
+        var playerSlot = player!.Slot;
 
-            if (!playerTimers[playerSlot].IsTimerBlocked || !playerTimers[playerSlot].IsReplaying)
-            {
-                player.PrintToChat(msgPrefix + $" No Replay playing currently");
-                return;
+        if (!playerTimers[playerSlot].IsTimerBlocked || !playerTimers[playerSlot].IsReplaying)
+        {
+        player.PrintToChat(msgPrefix + $" No Replay playing currently");
+        return;
+        }
+
+        if (playerTimers[playerSlot].IsReplaying)
+        {
+        player.PrintToChat(msgPrefix + $" Ending Replay!");
+        playerTimers[playerSlot].IsReplaying = false;
+        if (player.PlayerPawn.Value!.MoveType != MoveType_t.MOVETYPE_WALK || player.PlayerPawn.Value.ActualMoveType == MoveType_t.MOVETYPE_WALK) SetMoveType(player, MoveType_t.MOVETYPE_WALK);
+        RespawnPlayerCommand(player, command);
+        playerReplays.Remove(playerSlot);
+        playerReplays[playerSlot] = new PlayerReplays();
+        playerTimers[playerSlot].IsTimerRunning = false;
+        playerTimers[playerSlot].TimerTicks = 0;
+        playerTimers[playerSlot].IsBonusTimerRunning = false;
+        playerTimers[playerSlot].BonusTimerTicks = 0;
+        playerReplays[playerSlot].CurrentPlaybackFrame = 0;
+        if (stageTriggers.Count != 0) playerTimers[playerSlot].StageTimes!.Clear(); //remove previous stage times if the map has stages
+        if (stageTriggers.Count != 0) playerTimers[playerSlot].StageVelos!.Clear(); //remove previous stage times if the map has stages
+
+        // Automatically trigger css_timer command
+        StartTimerCommand(player, command);
             }
+        }
 
-            if (playerTimers[playerSlot].IsReplaying)
-            {
-                player.PrintToChat(msgPrefix + $" Ending Replay!");
-                playerTimers[playerSlot].IsReplaying = false;
-                if (player.PlayerPawn.Value!.MoveType != MoveType_t.MOVETYPE_WALK || player.PlayerPawn.Value.ActualMoveType == MoveType_t.MOVETYPE_WALK) SetMoveType(player, MoveType_t.MOVETYPE_WALK);
-                RespawnPlayerCommand(player, command);
-                playerReplays.Remove(playerSlot);
-                playerReplays[playerSlot] = new PlayerReplays();
-                playerTimers[playerSlot].IsTimerRunning = false;
-                playerTimers[playerSlot].TimerTicks = 0;
-                playerTimers[playerSlot].IsBonusTimerRunning = false;
-                playerTimers[playerSlot].BonusTimerTicks = 0;
-                playerReplays[playerSlot].CurrentPlaybackFrame = 0;
-                if (stageTriggers.Count != 0) playerTimers[playerSlot].StageTimes!.Clear(); //remove previous stage times if the map has stages
-                if (stageTriggers.Count != 0) playerTimers[playerSlot].StageVelos!.Clear(); //remove previous stage times if the map has stages
-            }
+        [ConsoleCommand("css_timer", "starts the timer")]
+        [CommandHelper(whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        public void StartTimerCommand(CCSPlayerController? player, CommandInfo command)
+        {
+        if (player == null) return;
+
+        var playerSlot = player!.Slot;
+        playerTimers[playerSlot].IsTimerRunning = true;
+        playerTimers[playerSlot].TimerTicks = 0;
+        playerTimers[playerSlot].IsBonusTimerRunning = false;
+        playerTimers[playerSlot].BonusTimerTicks = 0;
+        player.PrintToChat(msgPrefix + $" Timer Started!");
         }
 
         [ConsoleCommand("css_help", "alias for !sthelp")]
