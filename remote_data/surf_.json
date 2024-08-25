@@ -53,6 +53,10 @@
     },
     "surf_anime_fun": {
         "Tier": 1,
+        "Type": "Staged"  
+    },
+    "surf_artois": {
+        "Tier": 1,
         "Type": "Staged"
     },
     "surf_aqua_fix": {
@@ -77,6 +81,10 @@
     },
     "surf_atrium": {
         "Tier": 1,
+        "Type": "Linear"        
+    },
+    "surf_axiom_fix": {
+        "Tier": 4,
         "Type": "Linear"
     },
     "surf_beginner": {
@@ -381,7 +389,11 @@
     },
     "surf_sandtrap2": {
         "Tier": 2,
-        "Type": "Linear"
+        "Type": "Linear"        
+    },
+    "surf_santorini_ksf": {
+        "Tier": 1,
+        "Type": "Staged"
     },
     "surf_saturday": {
         "Tier": 2,
